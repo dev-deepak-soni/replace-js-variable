@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Variable Replacer</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+
+<body>
+
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-md-12">
+                <h3>Variable Replacer</h3>
+            </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="variableSelect">Select a Variable:</label>
+                    <select class="form-control" id="variableSelect">
+                        <option value="name">Name</option>
+                        <option value="age">Age</option>
+                        <option value="city">City</option>
+                        <!-- Add more options as needed -->
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="replacementInput">Replace with:</label>
+                    <input type="text" class="form-control" id="replacementInput">
+                </div>
+            </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col">
+                <button class="btn btn-primary" onclick="replaceFileVariable()">Replace Variable</button>
+            </div>
+        </div>
+
+        <div class="row mt-3">
+            <div class="col">
+                <pre>
+                    <div id="result"></div>
+                </pre>
+            </div>
+        </div>
+
+
+        <div class="row mt-3">
+            <div class="col">
+                <button class="btn btn-primary" onclick="downloadFile()">Download</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS and Popper.js (required for Bootstrap components) -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            getVariables();
+        });
+
+        const getVariables = async () => {
+            try {
+                const response = await fetch('./variable.js');
+                const jsCode = await response.text();
+
+                const variablePatternVar = /(var|let|const)\s+(\w+)\s*=\s*(?:([^;]+)|{([^}]+)})/g;
+
+
+                let match;
+                const variables = [];
+
+                while ((match = variablePattern.exec(jsCode)) !== null) {
+                    variables.push({
+                        name: match[1]
+                    });
+                }
+
+                if (variables) {
+                    let html = '';
+                    for (let index = 0; index < variables.length; index++) {
+                        html += `<option value= ${variables[index].name}>${variables[index].name}</option>`;
+                    }
+                }
+
+            } catch (error) {
+                console.error('Error loading the JavaScript file:', error);
+            }
+        }
+
+
+        const replaceVariablesInFile = async (filePath) => {
+            var selectedVariable = document.getElementById("variableSelect").value;
+            var replacementText = document.getElementById("replacementInput").value;
+            const variables = [
+                { oldName: selectedVariable, newName: replacementText }
+            ];
+            try {
+                const response = await fetch(filePath);
+                const code = await response.text();
+
+                let modifiedCode = code;
+
+                for (const replacement of variables) {
+                    const regex = new RegExp(`\\b${replacement.oldName}\\b`, 'g');
+                    modifiedCode = modifiedCode.replace(regex, replacement.newName);
+                }
+
+                return modifiedCode;
+            } catch (error) {
+                console.error('Error:', error);
+                return null;
+            }
+        };
+
+
+        const replaceFileVariable = () => {
+            const filePath = './variable.js';
+
+
+            replaceVariablesInFile(filePath)
+                .then(modifiedCode => {
+                    if (modifiedCode !== null) {
+                        console.log('Modified Code:', modifiedCode);
+                        $('#result').text(modifiedCode);
+                    } else {
+                        console.log('Failed to fetch or modify the file.');
+                    }
+                });
+        }
+
+        const downloadFile = () => {
+            const content = document.getElementById('result').textContent;
+            const blob = new Blob([content], { type: 'text/plain' });
+            const link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+            link.download = 'results.js';
+            link.click();
+        }
+
+    </script>
+
+</body>
+
+</html>
