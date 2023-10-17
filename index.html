@@ -22,10 +22,6 @@
                 <div class="form-group">
                     <label for="variableSelect">Select a Variable:</label>
                     <select class="form-control" id="variableSelect">
-                        <option value="name">Name</option>
-                        <option value="age">Age</option>
-                        <option value="city">City</option>
-                        <!-- Add more options as needed -->
                     </select>
                 </div>
             </div>
@@ -40,20 +36,17 @@
             <div class="col">
                 <button class="btn btn-primary" onclick="replaceFileVariable()">Replace Variable</button>
             </div>
+            <div class="col">
+                <button class="btn btn-primary" style="display:none" id="downloadFileDiv" onclick="downloadFile()">Download JS File</button>
+            </div>
         </div>
+        
 
         <div class="row mt-3">
             <div class="col">
                 <pre>
                     <div id="result"></div>
                 </pre>
-            </div>
-        </div>
-
-
-        <div class="row mt-3">
-            <div class="col">
-                <button class="btn btn-primary" onclick="downloadFile()">Download</button>
             </div>
         </div>
     </div>
@@ -73,7 +66,7 @@
                 const response = await fetch('./variable.js');
                 const jsCode = await response.text();
 
-                const variablePatternVar = /(var|let|const)\s+(\w+)\s*=\s*(?:([^;]+)|{([^}]+)})/g;
+                const variablePattern = /(var|let|const|func)\s+(\w+)\s*=\s*(?:([^;]+)|{([^}]+)})/g;
 
 
                 let match;
@@ -81,15 +74,17 @@
 
                 while ((match = variablePattern.exec(jsCode)) !== null) {
                     variables.push({
-                        name: match[1]
+                        name: match[2]
                     });
                 }
+                console.log('variables',variables);
 
                 if (variables) {
                     let html = '';
                     for (let index = 0; index < variables.length; index++) {
                         html += `<option value= ${variables[index].name}>${variables[index].name}</option>`;
                     }
+                    $('#variableSelect').append(html);
                 }
 
             } catch (error) {
@@ -132,6 +127,8 @@
                     if (modifiedCode !== null) {
                         console.log('Modified Code:', modifiedCode);
                         $('#result').text(modifiedCode);
+                        $('#downloadFileDiv').css('display','block');
+                        
                     } else {
                         console.log('Failed to fetch or modify the file.');
                     }
